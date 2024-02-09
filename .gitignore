@@ -1,0 +1,13 @@
+# Node.js
+node_modules/
+
+# Archivos locales de configuración
+.env
+
+# Logs
+logs/
+*.log
+
+# Archivos temporales
+tmp/
+*.tmp
