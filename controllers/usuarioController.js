@@ -55,7 +55,29 @@ const autenticar = async (req,res) => {
     }
 }
 
+//confirmar usuario
+const confirmar = async (req, res) => {
+    // console.log(req.params.token) //params es el parametro que definite en la ruta /confirmar/:token
+    const {token} = req.params
+    const confirmarUsuario = await Usuario.findOne({token})
+    if (!confirmarUsuario){ 
+        const error = new Error('Token no válido')
+        return res.status(403).json({msg: error.message})
+    }
+
+    try {
+        confirmarUsuario.confirmado = true
+        confirmarUsuario.token = '';
+        await confirmarUsuario.save()
+        res.json({msg : 'Usuario confirmado correctamente'})
+    } catch (error) {
+        console.log(error)
+    }
+    
+}
+
 export {
     registrarUsuario,
-    autenticar
+    autenticar,
+    confirmar
 }
