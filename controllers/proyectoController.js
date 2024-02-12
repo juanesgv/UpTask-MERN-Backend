@@ -1,9 +1,22 @@
+import express from "express"
+import Proyecto from "../model/Proyecto.js"
 
 const obtenerProyectos = async (req,res) => {
-    
+    const proyecto = await Proyecto.find().where('creador').equals(req.usuario)
+    res.json(proyecto)
 }
 
 const nuevoProyecto = async (req,res) => {
+    const proyecto = new Proyecto(req.body)
+    proyecto.creador = req.usuario._id
+
+    try {
+        const proyectoAlmacenado = await proyecto.save()
+        res.json(proyectoAlmacenado)
+    } catch (error) {
+        console.log(error)
+    }
+
     
 }
 
