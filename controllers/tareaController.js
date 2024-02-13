@@ -42,7 +42,6 @@ const obtenerTarea = async (req, res) => {
     }
 
     res.json(tarea);
-
   } catch (error) {
     console.log(error);
     return res
@@ -51,9 +50,63 @@ const obtenerTarea = async (req, res) => {
   }
 };
 
-const actualizarTarea = async (req, res) => {};
+const actualizarTarea = async (req, res) => {
+  const { id } = req.params;
 
-const eliminarTarea = async (req, res) => {};
+  const tarea = await Tarea.findById(id).populate("proyecto");
+
+  //verifica si la tarea existe
+  if (!tarea) {
+    const error = new Error("No existe el proyecto");
+    return res.status(404).json({ msg: error.message });
+  }
+
+  //verifica si el creador del proyecto es el autenticado
+  if (tarea.proyecto.creador.toString() !== req.usuario._id.toString()) {
+    const error = new Error("Acción no válida");
+    return res.status(403).json({ msg: error.message });
+  }
+
+  tarea.nombre = req.body.nombre || tarea.nombre;
+  tarea.descripcion = req.body.descripcion || tarea.descripcion;
+  tarea.prioridad = req.body.prioridad || tarea.prioridad;
+  tarea.fechaEntrega = req.body.fechaEntrega || tarea.fechaEntrega;
+
+  try {
+    const tareaAlmacenada = await tarea.save();
+    res.json(tareaAlmacenada);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const eliminarTarea = async (req, res) => {
+  const { id } = req.params;
+
+  const tarea = await Tarea.findById(id).populate("proyecto");
+
+  if (!tarea) {
+    const error = new Error("No existe el proyecto");
+    return res.status(404).json({ msg: error.message });
+  }
+
+  if (tarea.proyecto.creador.toString() !== req.usuario._id.toString()) {
+    const error = new Error("Acción no válida");
+    return res.status(403).json({ msg: error.message });
+  }
+
+  tarea.nombre = req.body.nombre || tarea.nombre;
+  tarea.descripcion = req.body.descripcion || tarea.descripcion;
+  tarea.prioridad = req.body.prioridad || tarea.prioridad;
+  tarea.fechaEntrega = req.body.fechaEntrega || tarea.fechaEntrega;
+
+  try {
+    const tareaEliminada = await tarea.deleteOne();
+    res.json({msg:"Tarea eliminada existosamente"});
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 const cambiarEstado = async (req, res) => {};
 
