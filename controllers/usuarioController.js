@@ -1,7 +1,7 @@
 import Usuario from "../model/Usuario.js";
 import generarId from "../helpers/generarId.js";
 import generarJWT from "../helpers/generarJWT.js";
-import { emailRegistro } from "../helpers/emails.js";
+import { emailRegistro, emailOlvidePassword } from "../helpers/emails.js";
 
 const registrarUsuario = async (req, res) => {
   //Evitar registro duplicados
@@ -106,6 +106,14 @@ const olvidePassword = async (req, res) => {
   try {
     usuario.token = generarId();
     await usuario.save();
+
+    //enviar mail
+    emailOlvidePassword({
+      email: usuario.email,
+      nombre: usuario.nombre,
+      token: usuario.token,
+    })
+
     res.json({
       msg: "Hemos enviado un correo electrónico que contiene las instrucciones para recuperar tu contraseña",
     });
