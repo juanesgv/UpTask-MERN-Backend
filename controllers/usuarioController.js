@@ -1,6 +1,7 @@
 import Usuario from "../model/Usuario.js";
 import generarId from "../helpers/generarId.js";
 import generarJWT from "../helpers/generarJWT.js";
+import { emailRegistro } from "../helpers/emails.js";
 
 const registrarUsuario = async (req, res) => {
   //Evitar registro duplicados
@@ -16,8 +17,18 @@ const registrarUsuario = async (req, res) => {
   try {
     const usuario = new Usuario(req.body);
     usuario.token = generarId();
-    const usuarioAlmacenado = await usuario.save();
-    res.json({msg: 'Usuario creado exitosamente, hemos enviado un correo electrónico para que verifiques tu cuenta'});
+    await usuario.save();
+
+    //enviar el mail de confirmacion
+    emailRegistro({
+      email: usuario.email,
+      nombre: usuario.nombre,
+      token: usuario.token,
+    });
+
+    res.json({
+      msg: "Usuario creado exitosamente, hemos enviado un correo electrónico para que verifiques tu cuenta",
+    });
   } catch (error) {
     console.log(error);
   }
@@ -56,21 +67,28 @@ const autenticar = async (req, res) => {
 
 //confirmar usuario
 const confirmar = async (req, res) => {
-  // console.log(req.params.token) //params es el parametro que definite en la ruta /confirmar/:token
   const { token } = req.params;
-  const confirmarUsuario = await Usuario.findOne({ token });
-  if (!confirmarUsuario) {
-    const error = new Error("Token no válido");
-    return res.status(403).json({ msg: error.message });
-  }
 
   try {
+    const confirmarUsuario = await Usuario.findOne({ token });
+
+    if (!confirmarUsuario) {
+      // const error = new Error("El token no es válido o ya ha sido utilizado para confirmar la cuenta.");
+      return res
+        .status(403)
+        .json({
+          msg: "El token no es válido o ya ha sido utilizado para confirmar la cuenta.",
+        });
+    }
+
     confirmarUsuario.confirmado = true;
     confirmarUsuario.token = "";
     await confirmarUsuario.save();
+
     res.json({ msg: "Usuario confirmado correctamente" });
   } catch (error) {
     console.log(error);
+    res.status(500).json({ msg: "Error interno del servidor" });
   }
 };
 
@@ -131,10 +149,10 @@ const nuevoPassword = async (req, res) => {
   }
 };
 
-const perfil = async (req,res) => {
-    const {usuario} = req
-    res.json(usuario)
-}
+const perfil = async (req, res) => {
+  const { usuario } = req;
+  res.json(usuario);
+};
 
 export {
   registrarUsuario,
@@ -143,5 +161,5 @@ export {
   olvidePassword,
   comprobarToken,
   nuevoPassword,
-  perfil
+  perfil,
 };
