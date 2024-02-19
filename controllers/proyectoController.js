@@ -3,7 +3,7 @@ import Proyecto from "../model/Proyecto.js";
 import Tarea from "../model/Tarea.js";
 
 const obtenerProyectos = async (req, res) => {
-  const proyecto = await Proyecto.find().where("creador").equals(req.usuario); //req.usuario es el usuario autenticado que es validado en el middleware
+  const proyecto = await Proyecto.find().where("creador").equals(req.usuario).select('-tareas'); //req.usuario es el usuario autenticado que es validado en el middleware
   res.json(proyecto);
 };
 
@@ -22,7 +22,7 @@ const nuevoProyecto = async (req, res) => {
 const obtenerProyecto = async (req, res) => {
   try {
     const { id } = req.params;
-    const proyecto = await Proyecto.findById(id);
+    const proyecto = await Proyecto.findById(id).populate('tareas');
 
     //verifica si el proyecto existe
     if (!proyecto) {
