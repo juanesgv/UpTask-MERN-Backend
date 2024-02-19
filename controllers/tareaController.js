@@ -98,13 +98,8 @@ const eliminarTarea = async (req, res) => {
     return res.status(403).json({ msg: error.message });
   }
 
-  tarea.nombre = req.body.nombre || tarea.nombre;
-  tarea.descripcion = req.body.descripcion || tarea.descripcion;
-  tarea.prioridad = req.body.prioridad || tarea.prioridad;
-  tarea.fechaEntrega = req.body.fechaEntrega || tarea.fechaEntrega;
-
   try {
-    const tareaEliminada = await tarea.deleteOne();
+    await tarea.deleteOne();
     res.json({msg:"Tarea eliminada existosamente"});
   } catch (error) {
     console.log(error);
