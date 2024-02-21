@@ -6,7 +6,7 @@ const obtenerProyectos = async (req, res) => {
   const proyecto = await Proyecto.find()
     .where("creador")
     .equals(req.usuario) //req.usuario es el usuario autenticado que es validado en el middleware
-    .select("-tareas"); 
+    .select("-tareas");
   res.json(proyecto);
 };
 
@@ -25,7 +25,9 @@ const nuevoProyecto = async (req, res) => {
 const obtenerProyecto = async (req, res) => {
   try {
     const { id } = req.params;
-    const proyecto = await Proyecto.findById(id).populate("tareas");
+    const proyecto = await Proyecto.findById(id)
+      .populate("tareas")
+      .populate("colaboradores", "nombre email _id");
 
     //verifica si el proyecto existe
     if (!proyecto) {
@@ -141,24 +143,41 @@ const agregarColaborador = async (req, res) => {
   }
 
   //el colaborador no es el admin del proyecto
-  if(proyecto.creador.toString() === usuario._id.toString()){
+  if (proyecto.creador.toString() === usuario._id.toString()) {
     const error = new Error("El creador del proyecto no puede ser colaborador");
     return res.status(404).json({ msg: error.message });
   }
 
   //revisar que no está agregado al proyecto
-  if(proyecto.colaboradores.includes(usuario._id)){
+  if (proyecto.colaboradores.includes(usuario._id)) {
     const error = new Error("El colaborador ya pertenece al proyecto");
     return res.status(404).json({ msg: error.message });
   }
 
-  proyecto.colaboradores.push(usuario._id)
-  await proyecto.save()
-  return res.json({msg: 'Colaborador agregado exitosamente'})
-
+  proyecto.colaboradores.push(usuario._id);
+  await proyecto.save();
+  return res.json({ msg: "Colaborador agregado exitosamente" });
 };
 
-const eliminarColaborador = async (req, res) => {};
+const eliminarColaborador = async (req, res) => {
+  const { id } = req.params;
+  const proyecto = await Proyecto.findById(id);
+
+  if (!proyecto) {
+    const error = new Error("Proyecto no encontrado");
+    return res.status(404).json({ msg: error.message });
+  }
+
+  if (proyecto.creador.toString() !== req.usuario._id.toString()) {
+    const error = new Error("Acción no válida");
+    return res.status(404).json({ msg: error.message });
+  }
+
+  proyecto.colaboradores.pull(req.body.id);
+  await proyecto.save();
+  return res.json({ msg: "Colaborador eliminado del proyecto exitosamente" });
+
+};
 
 export {
   obtenerProyectos,
