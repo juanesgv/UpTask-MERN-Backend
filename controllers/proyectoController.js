@@ -3,9 +3,12 @@ import Proyecto from "../model/Proyecto.js";
 import Usuario from "../model/Usuario.js";
 
 const obtenerProyectos = async (req, res) => {
-  const proyecto = await Proyecto.find()
-    .where("creador")
-    .equals(req.usuario) //req.usuario es el usuario autenticado que es validado en el middleware
+  const proyecto = await Proyecto.find({
+    '$or' : [
+      {'colaboradores' : {$in:req.usuario}}, //req.usuario es el usuario autenticado que es validado en el middleware
+      {'creador' : {$in:req.usuario}},
+    ]
+  })    
     .select("-tareas");
   res.json(proyecto);
 };
@@ -35,8 +38,8 @@ const obtenerProyecto = async (req, res) => {
       return res.status(404).json({ msg: error.message });
     }
 
-    //verifica si el usuario autenticado es el creador del proyecto
-    if (proyecto.creador.toString() !== req.usuario._id.toString()) {
+    //verifica si el usuario autenticado es el creador del proyecto o colaborador el proyecto
+    if (proyecto.creador.toString() !== req.usuario._id.toString() && !proyecto.colaboradores.some(colaborador => colaborador._id.toString() === req.usuario._id.toString())) {
       const error = new Error("Acción no válida");
       return res.status(401).json({ msg: error.message });
     }
