@@ -29,7 +29,7 @@ const obtenerProyecto = async (req, res) => {
   try {
     const { id } = req.params;
     const proyecto = await Proyecto.findById(id)
-      .populate("tareas")
+      .populate({ path: 'tareas', populate: {path: 'completado', select: 'nombre'}}) //populate a un populate
       .populate("colaboradores", "nombre email _id");
 
     //verifica si el proyecto existe
