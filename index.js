@@ -53,15 +53,14 @@ const io = new Server(servidor, {
 })
 
 io.on('connection', (socket)  =>{
-    console.log("Conectado a Socker.io")
+    console.log("Conectado a Socket.io")
 
     //definir los eventos de socket.io
-
-    //recibimos datos desde react con el evento 'prueba'
-    socket.on('prueba', (proyectos)=>{
-        console.log('Prueba desde socket.io', proyectos)
+    socket.on('abrir proyecto', (proyectoId) => {
+        socket.join(proyectoId) //cada proyecto "entra" a una sala diferente
     })
 
-    //enviar datos a react
-    socket.emit('respuesta', {nombre: 'Juan' , apellido : 'Garcia'})
+    socket.on('nueva tarea' , (tarea) => {
+        socket.to(tarea.proyecto).emit('tarea agregada', tarea)
+    })
 })
